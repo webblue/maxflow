@@ -173,12 +173,13 @@ static void enqueue(struct MaxFlowInfo *mfi, struct Vertex *v)
 
 static struct Vertex *dequeue(struct MaxFlowInfo *mfi)
 {
-    struct Vertex *v = mfi->queue[mfi->head++];
+    /* Not really a queue; it's a stack! */
+    struct Vertex *v = mfi->queue[mfi->tail--];
     mfi->visited[v->id] = BLACK;
     return v;
 }
 
-static int bfs(FlowGraph g, struct MaxFlowInfo *mfi)
+static int dfs(FlowGraph g, struct MaxFlowInfo *mfi)
 {
     struct Vertex *u, *v;
     struct Edge *e;
@@ -237,7 +238,7 @@ float Graph_maxflow(FlowGraph g)
 
     // While there exists an augmenting path,
     // increment the flow along this path.
-    while(bfs(g, &mfi)) {
+    while(dfs(g, &mfi)) {
         // Determine the amount by which we can increment the flow.
         increment = INFINITY;
         v = g->sink;
