@@ -7,14 +7,18 @@ class FlowGraph(object):
         Creates an empty flow graph.
         '''
         self.edges = {}        # Maps (tailid, headid) to [tailid, headid, capacity, flow] list
-        self.vname2id = {'s': 0, 't': 1}  # Maps vertex name to vertex id
-        self.vid2name = {0: 's', 1: 't'}  # Maps vertex id to vertex name
+        self.vname2id = {}     # Maps vertex name to vertex id
+        self.vid2name = {}     # Maps vertex id to vertex name
         self.nextvertexid = 2  # 0 is source "s", 1 is sink "t"
 
     def _getvertexid(self, vertex):
         if vertex == 's':
+            self.vid2name[0] = 's'
+            self.vname2id['s'] = 0
             return 0
         if vertex == 't':
+            self.vid2name[1] = 't'
+            self.vname2id['t'] = 1
             return 1
         if vertex in self.vname2id:
             return self.vname2id[vertex]
