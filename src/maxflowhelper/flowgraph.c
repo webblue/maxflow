@@ -154,7 +154,16 @@ struct MaxFlowInfo {
        we can free them when done. */
     struct Edge **reverseEdges;
     int numReverseEdges;
+    /* Queue for implementing BFS. */
+    struct Vertex **queue;
+    int head;
+    int tail;
+    int *visited;
 };
+
+#define WHITE 0
+#define GRAY  1
+#define BLACK 2
 
 static void enqueue(struct MaxFlowInfo *mfi, struct Vertex *v)
 {
@@ -169,23 +178,28 @@ static struct Vertex *dequeue(struct MaxFlowInfo *mfi)
     return v;
 }
 
-static float maxflowIteration(FlowGraph g, struct MaxFlowInfo *mfi, struct Vertex *start)
+static int bfs(FlowGraph g, struct MaxFlowInfo *mfi)
 {
+    struct Vertex *u, *v;
     struct Edge *e;
     int i;
-    float nextIncrement;
-
-    if(start == g->sink)
-        return INFINITY;
-
-    while(i = 0; i < start->degree; i++) {
-        e = start->edges[i];
-        if(e->capacity - e->flow > 0.0) {
-            nextIncrement = maxflowIteration(g, mfi, e->to);
-            if(nextIncrement > 0.0)
-                return MIN(increment, nextIncrement);
+    /* Zero the visited array to all WHITE. */
+    memset(mfi->visited, 0, g->numVertices * sizeof(int));
+    mfi->head = 0;
+    mfi->tail = 0;
+    enqueue(mfi, g->source);
+    while(mfi->head != mfi->tail) {
+        u = dequeue(mfi);
+        for(i = 0; i < u->degree; i++) {
+            e = u->edges[i];
+            v = e->to;
+            if(mfi->visited[v->id] == WHITE && e->capacity - e->flow > 0) {
+                enqueue(mfi, v);
+                v->predEdge = e;
+            }
         }
     }
+    return mfi->visited[SINK_ID] == BLACK;
 }
 
 static void addFlow(struct MaxFlowInfo *mfi, struct Edge *edge, float amount)
@@ -216,14 +230,32 @@ float Graph_maxflow(FlowGraph g)
     struct Vertex *u, *v;
     struct Edge *e;
     float increment, maxflowVal = 0.0;
+    mfi.visited = (int *) malloc(n * sizeof(int));
     mfi.reverseEdges = (struct Edge **) malloc(g->numEdges * sizeof(struct Edge *));
     mfi.numReverseEdges = 0;
-    
-    do {
-        increment = maxflowIteration(g, &mfi, g->source);
-        maxflowVal += increment;
-    } while(increment > 0.0);
+    mfi.queue = (struct Vertex **) malloc((n+2) * sizeof(struct Vertex *));
 
+    // While there exists an augmenting path,
+    // increment the flow along this path.
+    while(bfs(g, &mfi)) {
+        // Determine the amount by which we can increment the flow.
+        increment = INFINITY;
+        v = g->sink;
+        while(v != g->source) {
+            increment = MIN(increment, v->predEdge->capacity - v->predEdge->flow);
+            v = v->predEdge->from;
+        }
+        // Now increment the flow.
+        v = g->sink;
+        while(v != g->source) {
+            addFlow(&mfi, v->predEdge, increment);
+            v = v->predEdge->from;
+        }
+        maxflowVal += increment;
+    }
+
+    free(mfi.visited);
+    free(mfi.queue);
     for(i = 0; i < mfi.numReverseEdges; i++) {
         e = mfi.reverseEdges[i];
         e->reverseEdge->reverseEdge = NULL;
