@@ -217,6 +217,7 @@ static void addFlow(struct MaxFlowInfo *mfi, struct Edge *edge, float amount)
         reverse->reverseEdge = edge;
         edge->reverseEdge = reverse;
         mfi->reverseEdges[mfi->numReverseEdges++] = reverse;
+        connectVtoE(reverse->from, reverse);
     }
     edge->flow += amount;
     reverse->flow -= amount;
@@ -258,6 +259,7 @@ float Graph_maxflow(FlowGraph g)
     for(i = 0; i < mfi.numReverseEdges; i++) {
         e = mfi.reverseEdges[i];
         e->reverseEdge->reverseEdge = NULL;
+        e->from->degree--;
         free(e);
     }
     free(mfi.reverseEdges);
