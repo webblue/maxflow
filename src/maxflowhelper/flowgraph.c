@@ -59,7 +59,7 @@ void Graph_free(FlowGraph g)
         v = (struct Vertex *) TableFixedIter_selectedValue(iter);
         free(v->edges);
         free(v);
-        free(TableFixedIter_selectedKey(iter));
+        free((void *)TableFixedIter_selectedKey(iter));
         TableFixedIter_selectNext(iter);
     }
     TableFixedIter_free(iter);
@@ -69,7 +69,7 @@ void Graph_free(FlowGraph g)
     TableFixedIter_selectFirst(iter);
     while(TableFixedIter_valid(iter)) {
         free(TableFixedIter_selectedValue(iter));
-        free(TableFixedIter_selectedKey(iter));
+        free((void *)TableFixedIter_selectedKey(iter));
         TableFixedIter_selectNext(iter);
     }
     TableFixedIter_free(iter);
@@ -238,7 +238,7 @@ float Graph_maxflow(FlowGraph g)
 {
     int n = g->numVertices, i;
     struct MaxFlowInfo mfi;
-    struct Vertex *u, *v;
+    struct Vertex *v;
     struct Edge *e;
     float increment, maxflowVal = 0.0;
     mfi.visited = (int *) malloc(n * sizeof(int));
