@@ -10,7 +10,7 @@ static FlowGraph constructGraph(PyObject *edges, int numVertices)
     float capacity;
 
     iter = PyObject_GetIter(edges);
-    while(item = PyIter_Next(iter)) {
+    while((item = PyIter_Next(iter))) {
         from = PyInt_AsLong(PyList_GetItem(item, 0));
         to = PyInt_AsLong(PyList_GetItem(item, 1));
         capacity = (float) PyFloat_AsDouble(PyList_GetItem(item, 2));
@@ -28,7 +28,7 @@ static void copyFlowsToPython(FlowGraph graph, PyObject *edges)
     float flow;
 
     iter = PyObject_GetIter(edges);
-    while(item = PyIter_Next(iter)) {
+    while((item = PyIter_Next(iter))) {
         from = PyInt_AsLong(PyList_GetItem(item, 0));
         to = PyInt_AsLong(PyList_GetItem(item, 1));
         flow = Graph_getFlow(graph, from, to);
@@ -44,7 +44,6 @@ static PyObject *maxflow(PyObject *self, PyObject *args)
     int numVertices;
     FlowGraph graph;
     float maxflowVal;
-    int i;
 
     if(!PyArg_ParseTuple(args, "Oi", &edges, &numVertices))
         return NULL;
