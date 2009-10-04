@@ -174,7 +174,7 @@ static void enqueue(struct MaxFlowInfo *mfi, struct Vertex *v)
 static struct Vertex *dequeue(struct MaxFlowInfo *mfi)
 {
     /* Not really a queue; it's a stack! */
-    struct Vertex *v = mfi->queue[mfi->tail--];
+    struct Vertex *v = mfi->queue[--mfi->tail];
     mfi->visited[v->id] = BLACK;
     return v;
 }
@@ -197,10 +197,12 @@ static int dfs(FlowGraph g, struct MaxFlowInfo *mfi)
             if(mfi->visited[v->id] == WHITE && e->capacity - e->flow > 0) {
                 enqueue(mfi, v);
                 v->predEdge = e;
+                if(v == g->sink)
+                    return 1;
             }
         }
     }
-    return mfi->visited[SINK_ID] == BLACK;
+    return 0;
 }
 
 static void addFlow(struct MaxFlowInfo *mfi, struct Edge *edge, float amount)
@@ -236,17 +238,17 @@ float Graph_maxflow(FlowGraph g)
     mfi.numReverseEdges = 0;
     mfi.queue = (struct Vertex **) malloc((n+2) * sizeof(struct Vertex *));
 
-    // While there exists an augmenting path,
-    // increment the flow along this path.
+    /* While there exists an augmenting path, increment the flow along
+       this path. */
     while(dfs(g, &mfi)) {
-        // Determine the amount by which we can increment the flow.
+        /* Determine the amount by which we can increment the flow. */
         increment = INFINITY;
         v = g->sink;
         while(v != g->source) {
             increment = MIN(increment, v->predEdge->capacity - v->predEdge->flow);
             v = v->predEdge->from;
         }
-        // Now increment the flow.
+        /* Now increment the flow. */
         v = g->sink;
         while(v != g->source) {
             addFlow(&mfi, v->predEdge, increment);
