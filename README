@@ -1,4 +1,4 @@
-This package implements the Ford-Fulkerson algorithm for finding the
+This package implements the Edmonds-Karp algorithm for finding the
 maximum flow in a flow graph.  Most of it is written in C using the
 Python C API, with a thin wrapper around the graph structure for
 creating the graph and retrieving the flow values after the max flow

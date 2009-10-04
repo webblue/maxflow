@@ -165,13 +165,21 @@ struct MaxFlowInfo {
 #define GRAY  1
 #define BLACK 2
 
-static void enqueue(struct MaxFlowInfo *mfi, struct Vertex *v)
+static inline void enqueue(struct MaxFlowInfo *mfi, struct Vertex *v)
 {
     mfi->queue[mfi->tail++] = v;
     mfi->visited[v->id] = 1;
 }
 
-static struct Vertex *dequeue(struct MaxFlowInfo *mfi)
+static inline struct Vertex *dequeueBFS(struct MaxFlowInfo *mfi)
+{
+    /* Not really a queue; it's a stack! */
+    struct Vertex *v = mfi->queue[mfi->head++];
+    mfi->visited[v->id] = BLACK;
+    return v;
+}
+
+static inline struct Vertex *dequeueDFS(struct MaxFlowInfo *mfi)
 {
     /* Not really a queue; it's a stack! */
     struct Vertex *v = mfi->queue[--mfi->tail];
@@ -179,7 +187,7 @@ static struct Vertex *dequeue(struct MaxFlowInfo *mfi)
     return v;
 }
 
-static int dfs(FlowGraph g, struct MaxFlowInfo *mfi)
+static inline int findPath(FlowGraph g, struct MaxFlowInfo *mfi)
 {
     struct Vertex *u, *v;
     struct Edge *e;
@@ -190,7 +198,7 @@ static int dfs(FlowGraph g, struct MaxFlowInfo *mfi)
     mfi->tail = 0;
     enqueue(mfi, g->source);
     while(mfi->head != mfi->tail) {
-        u = dequeue(mfi);
+        u = dequeueBFS(mfi);
         for(i = 0; i < u->degree; i++) {
             e = u->edges[i];
             v = e->to;
@@ -240,7 +248,7 @@ float Graph_maxflow(FlowGraph g)
 
     /* While there exists an augmenting path, increment the flow along
        this path. */
-    while(dfs(g, &mfi)) {
+    while(findPath(g, &mfi)) {
         /* Determine the amount by which we can increment the flow. */
         increment = INFINITY;
         v = g->sink;
