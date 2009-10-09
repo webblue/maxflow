@@ -1,1 +1,1 @@
-from maxflow import FlowGraph
+from maxflow import FlowGraph, GraphError
