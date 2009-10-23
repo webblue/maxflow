@@ -41,6 +41,19 @@ class FlowGraph(object):
         self.vertexname2id[vertex] = newid
         return newid
 
+    def alterflow(self, tail, head, flow, additive=False):
+        '''
+        Sets the flow from tail to head to flow.  If additive is True,
+        it adds flow to the existing flow instead of replacing it.
+        '''
+        try:
+            if additive:
+                self.edgesbyname[(tail, head)][3] += flow
+            else:
+                self.edgesbyname[(tail, head)][3] = flow
+        except KeyError:
+            raise GraphError('there is no edge from %s to %s' % (tail, head))
+
     def addedge(self, tail, head, cap, increaseifexists=False):
         '''
         Adds an edge from vertex tail to vertex head with
@@ -49,8 +62,11 @@ class FlowGraph(object):
         edge already exists, its capacity is increased by the given
         capacity instead of replaced.
         '''
-        if increaseifexists and (tail, head) in self.edgesbyname:
-            self.edgesbyname[(tail, head)][2] += amount
+        if (tail, head) in self.edgesbyname:
+            if increaseifexists:
+                self.edgesbyname[(tail, head)][2] += cap
+            else:
+                self.edgesbyname[(tail, head)][2] = cap
         else:
             tailid = self._getvertexid(tail)
             headid = self._getvertexid(head)
@@ -89,6 +105,21 @@ class FlowGraph(object):
             raise GraphError('unknown vertex "%s"' % head)
         try:
             return self.edgesbyname[(tail, head)][3]
+        except KeyError:
+            return 0.0
+
+    def getcapacity(self, tail, head):
+        '''
+        Returns the capacity from vertex tail to vertex head.  The
+        returned capacity is 0.0 if there is no edge from tail to
+        head.
+        '''
+        if tail not in self.vertexname2id:
+            raise GraphError('unknown vertex "%s"' % tail)
+        if head not in self.vertexname2id:
+            raise GraphError('unknown vertex "%s"' % head)
+        try:
+            return self.edgesbyname[(tail, head)][2]
         except KeyError:
             return 0.0
 
