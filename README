@@ -26,5 +26,3 @@ Vertices can be named using any hashable Python object.
 Known issues:
     - Behavior is undefined if the graph has any self edges or
       two-vertex cycles (an edge (x, y) and (y, x)).
-    - I'll add more convenient methods for traversing the graph and
-      extracting flow values later.
